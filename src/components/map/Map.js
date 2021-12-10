@@ -1,63 +1,61 @@
-import {useEffect, useRef, useState} from "react";
-import mapboxgl from "mapbox-gl";
+import React, {useEffect, useRef} from 'react';
+
+import 'mapbox-gl/dist/mapbox-gl.css';
+import 'react-map-gl-geocoder/dist/mapbox-gl-geocoder.css'
 import MAP_KEY from "./key";
-import "./Map.css"
+import mapboxgl from "mapbox-gl";
+import './Map.css'
+import {getWeather} from "../../api/getWeather";
 
-mapboxgl.accessToken = MAP_KEY
 
+mapboxgl.accessToken = MAP_KEY;
 
 const Map = () => {
+
     const mapContainerRef = useRef(null);
+    const popUpRef = useRef(new mapboxgl.Popup({ offset: 15 }));
 
-    const [lng, setLng] = useState(-96.79);
-    const [lat, setLat] = useState(32.77);
-    const [zoom, setZoom] = useState(9);
-
-    // Initialize map when component mounts
+    // initialize map when component mounts
     useEffect(() => {
         const map = new mapboxgl.Map({
             container: mapContainerRef.current,
-            style: 'mapbox://styles/mapbox/streets-v11',
-            center: [lng, lat],
-            zoom: zoom
+            // See style options here: https://docs.mapbox.com/api/maps/#styles
+            style: "mapbox://styles/mapbox/streets-v11",
+            center: [-96.80, 32.77],
+            zoom: 12.5
         });
 
-        // Add navigation control (the +/- zoom buttons)
-        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
+        map.on('load', getWeather(map.getCenter()));
 
-        // Add marker
-        let marker = new mapboxgl.Marker({
-            color: 'red',
+        // create initial marker
+        const marker = new mapboxgl.Marker({
+            color: 'red'
         })
-            .setLngLat({lng, lat})
             .setDraggable(true)
-            .addTo(map);
+            .setLngLat(map.getCenter())
+            .addTo(map)
 
-        marker.on('dragend', () => {
-            let change = marker.getLngLat();
-            console.log(change);
+        //on marker move re-center
+        marker.on('dragend', () =>{
+            const change = marker.getLngLat();
             map.setCenter(change);
-            setLng(change.lng.toFixed(2));
-            setLat(change.lat.toFixed(2));
-            setZoom(25)
-            map.setZoom(15)
-        })
+            map.setZoom(15);
+            getWeather(change);
+        });
 
-        // Clean up on unmount
+
+        // add navigation control (zoom buttons)
+        map.addControl(new mapboxgl.NavigationControl(), "bottom-right");
+
+
+
+        // clean up on unmount
         return () => map.remove();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    return (
-        <div>
-            <div className='sidebarStyle'>
-                <div>
-                    Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
-                </div>
-            </div>
-            <div className='map-container' ref={mapContainerRef} />
-        </div>
-    );
+    return <div className="map-container" ref={mapContainerRef} />;
 };
 
 export default Map;
+

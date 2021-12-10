@@ -1,17 +1,7 @@
 .map-container {
-    height: 75vh;
-    width: 75vw;
-    margin: auto auto;
-}
-
-.sidebarStyle {
-    display: inline-block;
+    position: absolute;
     top: 0;
-    left: auto;
-    right: auto;
-    background-color: #404040;
-    color: #ffffff;
-    z-index: 1 !important;
-    padding: 6px;
-    font-weight: bold;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
